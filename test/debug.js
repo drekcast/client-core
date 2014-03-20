@@ -1,12 +1,12 @@
 //the require library is configuring paths
 require.config({
-    baseUrl: "/drekcast/client-core",
+    //baseUrl: "/drekcast/client-core",
     paths: {
         //tries to load jQuery from Google's CDN first and falls back
         //to load locally
         "jquery": ["http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min",
             "bower_components/jquery/jquery"],
-        "lodash": "bower_components/lodash/dist/lodash",
+        "lodash": "../bower_components/lodash/dist/lodash",
         "primus": "http://localhost:3000/primus/primus"
 
     },
@@ -24,7 +24,7 @@ require.config({
 });
 //requiring the scripts in the first argument and then passing the library namespaces into a callback
 //you should be able to console log all of the callback arguments
-require(['../lib/Client', 'lib/connector/PrimusConnector'], function(Client, PrimusConnector) {
+require(['../lib/Client'], function(Client) {
 
 
     var client = new Client({
