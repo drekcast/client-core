@@ -6,7 +6,7 @@ require.config({
         //to load locally
         "jquery": ["http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min",
             "bower_components/jquery/jquery"],
-        "lodash": "bower_components/lodash/dist/lodash.underscore",
+        "lodash": "bower_components/lodash/dist/lodash",
         "primus": "http://localhost:3000/primus/primus"
 
     },
@@ -24,12 +24,35 @@ require.config({
 });
 //requiring the scripts in the first argument and then passing the library namespaces into a callback
 //you should be able to console log all of the callback arguments
-require(['lib/BaseClient', 'lib/connector/PrimusConnector'], function(Client, PrimusConnector) {
+require(['../lib/Client', 'lib/connector/PrimusConnector'], function(Client, PrimusConnector) {
 
-    var connector = new PrimusConnector();
+    var connector = new PrimusConnector('http://localhost:3000');
     var client = new Client({
-        connector: connector
+        connector: connector,
+        channel: 'drekcast-test'
     });
     client.connect();
 
+    client.on('all', function(message, data) {
+        console.log(message, data);
+    });
+
+    document.getElementById('join').addEventListener('click', function() {
+        client.setChannel('drekcast-test');
+    });
+
+    document.getElementById('screen-1').addEventListener('click', function() {
+        client.setScreen('clock');
+    })
+    document.getElementById('screen-2').addEventListener('click', function() {
+        client.setScreen('message');
+    })
+
+    document.getElementById('overlay-1').addEventListener('click', function() {
+        client.toggleOverlay('message', true, { test: 1});
+    });
+
+    document.getElementById('overlay-2').addEventListener('click', function() {
+        client.toggleOverlay('message', false, {});
+    });
 });
