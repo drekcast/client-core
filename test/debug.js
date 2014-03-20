@@ -26,9 +26,9 @@ require.config({
 //you should be able to console log all of the callback arguments
 require(['../lib/Client', 'lib/connector/PrimusConnector'], function(Client, PrimusConnector) {
 
-    var connector = new PrimusConnector('http://localhost:3000');
+
     var client = new Client({
-        connector: connector,
+        serverAddress: 'http://localhost:3000',
         channel: 'drekcast-test'
     });
     client.connect();
