@@ -12,7 +12,9 @@
     <!-- Place favicon.ico and apple-touch-icon.png in the root directory -->
     <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
     <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootswatch/3.1.1/slate/bootstrap.min.css">
-    <script data-main="debug" src="../bower_components/requirejs/require.js"></script>
+    <script src="../bower_components/lodash/dist/lodash.min.js"></script>
+    <script src="http://localhost:3000/primus/primus.js"></script>
+    <script src="../dist/drekcast-client-core.js"></script>
 </head>
 <body>
 <!--[if lt IE 7]>
@@ -26,5 +28,35 @@
     <button id="overlay-1" class="btn btn-default">Overlay 1</button>
     <button id="overlay-2" class="btn btn-default">Overlay 2</button>
 </div>
+<script type="text/javascript">
+    var client = new DrekCastClient({
+        serverAddress: 'http://localhost:3000',
+        channel: 'drekcast-test'
+    });
+    client.connect();
+
+    client.on('all', function(message, data) {
+        console.log(message, data);
+    });
+
+    document.getElementById('join').addEventListener('click', function() {
+        client.setChannel('drekcast-test');
+    });
+
+    document.getElementById('screen-1').addEventListener('click', function() {
+        client.setScreen('clock');
+    })
+    document.getElementById('screen-2').addEventListener('click', function() {
+        client.setScreen('message');
+    })
+
+    document.getElementById('overlay-1').addEventListener('click', function() {
+        client.toggleOverlay('message', true, { test: 1});
+    });
+
+    document.getElementById('overlay-2').addEventListener('click', function() {
+        client.toggleOverlay('message', false, {});
+    });
+</script>
 </body>
 </html>

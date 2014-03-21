@@ -1,23 +1,24 @@
-define(["lodash"], function(_) {
+(function(root, _) {
+    "use strict";
 
     var array = [];
     var push = array.push;
     var slice = array.slice;
     var splice = array.splice;
 
-    // Backbone.Events
-    // ---------------
+// Backbone.Events
+// ---------------
 
-    // A module that can be mixed in to *any object* in order to provide it with
-    // custom events. You may bind with `on` or remove with `off` callback
-    // functions to an event; `trigger`-ing an event fires all callbacks in
-    // succession.
-    //
-    //     var object = {};
-    //     _.extend(object, Backbone.Events);
-    //     object.on('expand', function(){ alert('expanded'); });
-    //     object.trigger('expand');
-    //
+// A module that can be mixed in to *any object* in order to provide it with
+// custom events. You may bind with `on` or remove with `off` callback
+// functions to an event; `trigger`-ing an event fires all callbacks in
+// succession.
+//
+//     var object = {};
+//     _.extend(object, Backbone.Events);
+//     object.on('expand', function(){ alert('expanded'); });
+//     object.trigger('expand');
+//
     var Events = {
 
         // Bind an event to a `callback` function. Passing `"all"` will bind
@@ -108,12 +109,12 @@ define(["lodash"], function(_) {
 
     };
 
-    // Regular expression used to split event strings.
+// Regular expression used to split event strings.
     var eventSplitter = /\s+/;
 
-    // Implement fancy features of the Events API such as multiple event
-    // names `"change blur"` and jQuery-style event maps `{change: action}`
-    // in terms of the existing API.
+// Implement fancy features of the Events API such as multiple event
+// names `"change blur"` and jQuery-style event maps `{change: action}`
+// in terms of the existing API.
     var eventsApi = function(obj, action, name, rest) {
         if (!name) return true;
 
@@ -137,9 +138,9 @@ define(["lodash"], function(_) {
         return true;
     };
 
-    // A difficult-to-believe, but optimized internal dispatch function for
-    // triggering events. Tries to keep the usual cases speedy (most internal
-    // Backbone events have 3 arguments).
+// A difficult-to-believe, but optimized internal dispatch function for
+// triggering events. Tries to keep the usual cases speedy (most internal
+// Backbone events have 3 arguments).
     var triggerEvents = function(events, args) {
         var ev, i = -1, l = events.length, a1 = args[0], a2 = args[1], a3 = args[2];
         switch (args.length) {
@@ -153,9 +154,9 @@ define(["lodash"], function(_) {
 
     var listenMethods = {listenTo: 'on', listenToOnce: 'once'};
 
-    // Inversion-of-control versions of `on` and `once`. Tell *this* object to
-    // listen to an event in another object ... keeping track of what it's
-    // listening to.
+// Inversion-of-control versions of `on` and `once`. Tell *this* object to
+// listen to an event in another object ... keeping track of what it's
+// listening to.
     _.each(listenMethods, function(implementation, method) {
         Events[method] = function(obj, name, callback) {
             var listeningTo = this._listeningTo || (this._listeningTo = {});
@@ -167,10 +168,204 @@ define(["lodash"], function(_) {
         };
     });
 
-    // Aliases for backwards compatibility.
+// Aliases for backwards compatibility.
     Events.bind   = Events.on;
     Events.unbind = Events.off;
 
-    return Events;
+function DrekCastClient(config) {
 
-})
+    this._currentChannel = undefined;
+    this._connector = undefined;
+
+    if (config) {
+        this._loadConfig(config);
+    }
+
+};
+
+_.extend(DrekCastClient.prototype, Events);
+
+DrekCastClient.prototype._loadConfig = function(config) {
+
+    //this._checkConfig(config);
+
+    if (config.connector) {
+
+        this._connector = config.connector;
+
+    } else if (config.serverAddress) {
+
+        this._connector = new PrimusConnector(config.serverAddress);
+
+    }
+
+    if (config.channel) {
+        this._currentChannel = config.channel; // This triggers the reconnect
+    }
+
+
+};
+
+DrekCastClient.prototype._checkConfig = function(config) {
+
+    if (!config.connector) {
+        throw Exception('No connector defined');
+    }
+    return true;
+
+};
+
+DrekCastClient.prototype.connect = function() {
+
+    this._initConnector();
+    this._startConnector();
+
+};
+
+DrekCastClient.prototype.disconnect = function() {
+
+};
+
+DrekCastClient.prototype._initConnector = function() {
+
+    var self = this;
+    this._connector.setCallback(function(message, data) {
+        self.trigger(message, data);
+    });
+
+};
+
+DrekCastClient.prototype._startConnector = function() {
+
+    this._connector.connect();
+
+    if (this._currentChannel) {
+        this._connector.join(this._currentChannel);
+    }
+
+};
+
+DrekCastClient.prototype.send = function(action, params) {
+
+    return this._connector.send(action, params);
+
+};
+
+DrekCastClient.prototype.setChannel = function(channelName) {
+
+    if (this._currentChannel) {
+        this._connector.leave(this._currentChannel);
+    }
+
+    this._connector.join(channelName);
+
+    this._currentChannel = channelName;
+};
+
+DrekCastClient.prototype.setScreen = function(screen, options) {
+
+    this._ensureChannelJoined();
+
+    options = options || {};
+
+    this._connector.send('setScreen', { screen: screen, options: options});
+
+};
+
+DrekCastClient.prototype.toggleOverlay = function(overlay, visible, options) {
+
+    this._ensureChannelJoined();
+
+    options = options || {};
+
+    this._connector.send('toggleOverlay', { overlay: overlay, visible: visible, options: options });
+
+};
+
+DrekCastClient.prototype._ensureConnected = function() {
+
+};
+
+DrekCastClient.prototype._ensureChannelJoined = function() {
+
+    this._ensureConnected();
+
+};
+
+DrekCastClient.log = function() {
+    console.log(arguments);
+};
+
+    function BaseConnector() {
+        this.callback = undefined;
+    }
+
+    BaseConnector.prototype.connect = function(type, token) {
+        console.error('connector.connect() not implemented');
+    };
+
+    BaseConnector.prototype.disconnect = function() {
+        console.error('connector.disconnect() not implemented');
+    };
+
+    BaseConnector.prototype.send = function(action, params) {
+        console.error('connector.send() not implemented');
+    };
+
+    BaseConnector.prototype.setCallback = function(callback) {
+        this.callback = callback;
+    };
+
+    BaseConnector.prototype.join = function(channel) {
+        console.error('connector.join() not implemented');
+    };
+
+    BaseConnector.prototype.leave = function(channel) {
+        console.error('connector.leave() not implemented');
+    };
+
+    var PrimusConnector = function(url, options) {
+
+        BaseConnector.call(this);
+
+        this.url = url;
+        this.options = options;
+
+    };
+
+    PrimusConnector.prototype = new BaseConnector;
+
+    PrimusConnector.prototype.connect = function(type, token) {
+
+        var url = this.url + '?type='+type+'&token='+token;
+        this.primus = new Primus(url, this.options);
+
+        var self = this;
+        this.primus.on('data', function(message) {
+            if (self.callback) {
+                self.callback.call(this, message[0], message[1] || {});
+            }
+        });
+
+    };
+
+    PrimusConnector.prototype.send = function(action, params) {
+
+        var data = _.assign({ 'action': action}, params);
+        this.primus.write(data);
+
+    };
+
+    PrimusConnector.prototype.join = function(channel) {
+        this.primus.write({ action: 'join', channel: channel });
+    };
+
+    PrimusConnector.prototype.leave = function(channel) {
+        this.primus.write({ action: 'leave', channel: channel });
+    };
+
+
+root.DrekCastClient = DrekCastClient;
+return DrekCastClient;
+
+})(window,_);

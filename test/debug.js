@@ -24,7 +24,7 @@ require.config({
 });
 //requiring the scripts in the first argument and then passing the library namespaces into a callback
 //you should be able to console log all of the callback arguments
-require(['../lib/Client'], function(Client) {
+require(['./Client'], function(Client) {
 
 
     var client = new Client({
