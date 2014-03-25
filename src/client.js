@@ -223,7 +223,7 @@ DrekCastClient.prototype.connect = function() {
 };
 
 DrekCastClient.prototype.disconnect = function() {
-
+    this._stopConnector();
 };
 
 DrekCastClient.prototype._initConnector = function() {
@@ -244,6 +244,12 @@ DrekCastClient.prototype._startConnector = function() {
     }
 
 };
+
+DrekCastClient.prototype._stopConnector = function() {
+
+    this._connector.disconnect();
+
+}
 
 DrekCastClient.prototype.send = function(action, params) {
 
@@ -346,8 +352,29 @@ DrekCastClient.log = function() {
                 self.callback.call(this, message[0], message[1] || {});
             }
         });
+        this.primus.on('open', function() {
+            self.callback.call(this, 'client:connect');
+            self.callback.call(this, 'connection:open');
+        });
+        this.primus.on('end', function() {
+            self.callback.call(this, 'client:disconnect');
+            self.callback.call(this, 'connection:end');
+        });
+        this.primus.on('error', function(err) {
+            self.callback.call(this, 'connection:error', err);
+        });
+        this.primus.on('reconnect', function() {
+            self.callback.call(this, 'connection:reconnect');
+        });
+        this.primus.on('reconnecting', function(opts) {
+            self.callback.call(this, 'connection:reconnecting', opts);
+        });
 
     };
+
+    PrimusConnector.prototype.disconnect = function() {
+        this.primus.end();
+    }
 
     PrimusConnector.prototype.send = function(action, params) {
 
